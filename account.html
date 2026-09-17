@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account — Willow & Clay</title>
+  <style>
+    body { margin: 0; font-family: Georgia, serif; background: #f4efe6; color: #33302b; }
+    main { max-width: 600px; margin: 5rem auto; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px #0002; }
+    h1 { color: #6b7860; } button { margin-top: 1rem; padding: .8rem 1rem; border: 0; border-radius: 4px; background: #8a5a44; color: white; font: inherit; cursor: pointer; } a { color: #6e4636; } .order { margin-top: 1rem; padding: 1rem; background: #f4efe6; border-radius: 6px; } .order ul { padding-left: 1.2rem; } #orders { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>My Account</h1>
+    <p id="welcome">Loading your account…</p>
+    <p><a href="index.html">Continue shopping</a></p>
+    <section id="orders">
+      <h2>My Orders</h2>
+      <p id="orders-message">Loading orders…</p>
+      <div id="orders-list"></div>
+    </section>
+    <button id="logout" type="button">Log Out</button>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+  <script>
+    async function loadAccount() {
+      const token = await getAccessToken();
+      if (!token) { window.location.href = 'login.html'; return; }
+      const response = await fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const account = await response.json();
+      if (!response.ok) { window.location.href = 'login.html'; return; }
+      document.querySelector('#welcome').textContent = `Signed in as ${account.email}.`;
+      if (account.role === 'admin') {
+        document.querySelector('#welcome').insertAdjacentHTML(
+          'afterend', '<p><a href="admin.html">Open admin dashboard</a></p>'
+        );
+      }
+
+      const ordersResponse = await fetch('/api/account/orders', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const orders = await ordersResponse.json();
+      const ordersMessage = document.querySelector('#orders-message');
+      const ordersList = document.querySelector('#orders-list');
+
+      if (!ordersResponse.ok) {
+        ordersMessage.textContent = orders.error || 'Could not load your orders.';
+        return;
+      }
+
+      if (!orders.length) {
+        ordersMessage.textContent = 'No orders yet. Orders placed using this account email will appear here.';
+        return;
+      }
+
+      ordersMessage.textContent = '';
+      ordersList.innerHTML = orders.map(function (order) {
+        const total = order.order_items.reduce(function (sum, item) {
+          return sum + Number(item.price) * Number(item.quantity);
+        }, 0);
+        const items = order.order_items.map(function (item) {
+          const name = item.products ? item.products.name : 'Product';
+          return `<li>${name} × ${item.quantity} — $${(Number(item.price) * Number(item.quantity)).toFixed(2)}</li>`;
+        }).join('');
+        return `<article class="order"><strong>Order #${order.id}</strong><br>${new Date(order.placed_at).toLocaleString()}<ul>${items}</ul><strong>Total: $${total.toFixed(2)}</strong></article>`;
+      }).join('');
+    }
+
+    document.querySelector('#logout').addEventListener('click', async function () {
+      const client = await getAuthClient();
+      await client.auth.signOut();
+      window.location.href = 'index.html';
+    });
+
+    loadAccount();
+  </script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Willow & Clay</title>
+
+  <style>
+    /* ===========================================================
+       LESSON 2: CSS — how the page LOOKS.
+       Pattern: selector { property: value; }
+       Read it as "for this element, set this property to this value."
+       =========================================================== */
+
+    /* --- 1. RESET / BASE SETTINGS ---
+       Browsers add their own default spacing to everything. We clear
+       that out first so we start from a predictable blank slate. */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      /* box-sizing: border-box means "when I set a width, include
+         padding and border IN that width" — without this, padding
+         makes boxes bigger than the width you set. Almost every
+         real project uses this. */
+    }
+
+    /* --- 2. COLOR PALETTE ---
+       We're picking colors that fit a handmade ceramics shop:
+       earthy, warm, calm. Naming them here means we only ever
+       change a color in ONE place if we change our minds. */
+    :root {
+      --sage: #6b7860;        /* deep sage green — header/footer */
+      --cream: #f4efe6;       /* warm off-white — page background */
+      --clay: #8a5a44;        /* muted clay brown — accents, buttons */
+      --clay-dark: #6e4636;   /* darker clay — button hover */
+      --text: #33302b;        /* near-black brown — body text */
+    }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      /* serif = has little feet on the letters, feels crafted/traditional,
+         which fits a handmade goods brand. Sans-serif (no feet) tends
+         to feel more modern/techy. */
+      background-color: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+      /* line-height = space between lines of text, as a multiple of
+         the font size. 1.6 gives text room to breathe. */
+    }
+
+    /* --- 3. HEADER --- */
+    header {
+      background-color: var(--sage);
+      color: var(--cream);
+      padding: 2rem 1.5rem;
+      /* padding: 2rem 1.5rem = "2rem top/bottom, 1.5rem left/right".
+         1rem = the browser's base font size, usually 16px. Using rem
+         instead of px keeps spacing consistent if font sizes change. */
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      letter-spacing: 1px;
+      /* letter-spacing adds a little air between letters — common
+         for logo-style text. */
+    }
+
+    header p {
+      font-style: italic;
+      opacity: 0.9;
+      margin-top: 0.25rem;
+    }
+
+    nav {
+      margin-top: 1.5rem;
+    }
+
+    nav a {
+      color: var(--cream);
+      text-decoration: none;
+      /* removes the default underline on links */
+      margin: 0 1rem;
+      font-size: 1rem;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s ease;
+      /* transition makes CHANGES (like the hover effect below) animate
+         smoothly instead of snapping instantly. */
+    }
+
+    nav a:hover {
+      /* :hover is a "pseudo-class" — a state selector. This rule only
+         applies while the mouse is over the link. */
+      border-bottom: 1px solid var(--cream);
+    }
+
+    /* --- 4. MAIN CONTENT AREA --- */
+    main {
+      max-width: 960px;
+      /* stops the content from stretching edge-to-edge on wide screens */
+      margin: 0 auto;
+      /* margin: 0 auto centers a block horizontally */
+      padding: 3rem 1.5rem;
+    }
+
+    section {
+      margin-bottom: 4rem;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid var(--clay);
+      display: inline-block;
+      padding-bottom: 0.25rem;
+    }
+
+    /* --- 5. PRODUCT GRID (this is the important layout part) ---
+       We want the products to sit side-by-side and wrap onto a new
+       row on smaller screens. Flexbox is the tool for that. */
+    #products {
+      display: flex;
+      flex-wrap: wrap;
+      /* flex-wrap: wrap lets items drop to the next line instead of
+         squeezing into one row forever */
+      gap: 1.5rem;
+      /* gap = space between flex items, without needing manual margins */
+    }
+
+    #products h2 {
+      /* h2 is the section title, not a flex item — but since #products
+         itself is display:flex, h2 becomes one. flex-basis: 100% forces
+         it to take a full row by itself, pushing products below it. */
+      flex-basis: 100%;
+    }
+
+    .product {
+      /* the DOT means "select by class" — class="product" in the HTML.
+         Classes are reusable: every product div shares these rules. */
+      background-color: white;
+      border-radius: 8px;
+      /* rounds the corners — 8px is a soft, subtle curve */
+      padding: 1.25rem;
+      width: 260px;
+      /* flex items with a fixed width will wrap naturally once
+         they run out of row space */
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      /* soft drop shadow: horizontal 0, vertical 2px, blur 6px,
+         color = black at 8% opacity. Subtle shadows read as "card". */
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+
+    .product:hover {
+      transform: translateY(-4px);
+      /* nudges the card up slightly on hover — a small, tasteful
+         "lift" effect that signals interactivity */
+    }
+
+    .product img {
+      width: 100%;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
+    }
+
+    .product h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .price {
+      color: var(--clay);
+      font-weight: bold;
+      margin-bottom: 0.75rem;
+    }
+
+    .product button {
+      background-color: var(--clay);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      /* cursor: pointer shows the hand icon, telling users "this is
+         clickable" even before they hover-interact with it */
+      transition: background-color 0.2s ease;
+    }
+
+    .product button:hover {
+      background-color: var(--clay-dark);
+    }
+
+    /* --- 6. ABOUT SECTION --- */
+    #about p {
+      max-width: 60ch;
+      /* 60ch = about 60 characters wide — the readable-paragraph
+         sweet spot. Text stretched full-width is hard to read. */
+    }
+
+    /* --- 7. FOOTER --- */
+    footer {
+      background-color: var(--sage);
+      color: var(--cream);
+      text-align: center;
+      padding: 2rem 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    footer p {
+      margin-bottom: 0.25rem;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Willow & Clay</h1>
+    <p>Handmade ceramics, one mug at a time.</p>
+    <nav>
+      <a href="#products">Shop</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="products">
+      <h2>Our Products</h2>
+
+      <div class="product">
+        <img src="https://placehold.co/300x300?text=Mug" alt="Handmade ceramic mug with a matte blue glaze">
+        <h3>Krishna Statue </h3>
+        <p class="price">$28.00</p>
+        <button>Add to Cart</button>
+      </div>
+
+      <div class="product">
+        <img src="https://placehold.co/300x300?text=Bowl" alt="Handmade ceramic bowl with a speckled cream glaze">
+        <h3>Speckled Bowl</h3>
+        <p class="price">$34.00</p>
+        <button>Add to Cart</button>
+      </div>
+
+      <div class="product">
+        <img src="https://placehold.co/300x300?text=Vase" alt="Handmade ceramic vase with an earthy terracotta finish">
+        <h3>Glass Vase</h3>
+        <p class="price">$45.00</p>
+        <button>Add to Cart</button>
+      </div>
+    </section>
+
+    <section id="about">
+      <h2>About Willow & Clay</h2>
+      <p>
+        Every piece is thrown by hand on a potter's wheel, then glazed
+        and fired in small batches. No two pieces are exactly alike —
+        that's the point.
+      </p>
+    </section>
+  </main>
+
+  <footer id="contact">
+    <p>Questions? Email us at hello@willowandclay.example</p>
+    <p>&copy; 2026 Willow & Clay</p>
+  </footer>
+
+</body>
+</html>

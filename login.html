@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Login — Willow & Clay</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Georgia, serif;
+      background: #f4efe6;
+      color: #33302b;
+    }
+
+    main {
+      max-width: 420px;
+      margin: 5rem auto;
+      padding: 2rem;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px #0002;
+    }
+
+    h1 {
+      color: #6b7860;
+    }
+
+    label,
+    input,
+    button {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    label {
+      margin-top: 1rem;
+    }
+
+    input {
+      margin-top: 0.35rem;
+      padding: 0.7rem;
+      font: inherit;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      border: 0;
+      border-radius: 4px;
+      background: #8a5a44;
+      color: white;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    #message {
+      min-height: 1.5rem;
+    }
+
+    a {
+      color: #6e4636;
+    }
+
+    .password-field {
+      position: relative;
+    }
+
+    .password-field input {
+      padding-right: 4.5rem;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 0.35rem;
+      top: 0.55rem;
+      width: auto;
+      margin: 0;
+      padding: 0.35rem 0.45rem;
+      background: transparent;
+      color: #6e4636;
+      font-size: 0.85rem;
+      text-decoration: underline;
+    }
+
+    .password-toggle:hover {
+      background: transparent;
+      opacity: 1;
+    }
+
+    .text-link {
+      background: none;
+      color: #6e4636;
+      padding: 0;
+      margin-top: 0.8rem;
+      text-decoration: underline;
+      font-size: 0.9rem;
+    }
+
+    .text-link:hover {
+      background: none;
+      color: #8a5a44;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+
+    <h1>Willow & Clay</h1>
+
+    <p>Sign in to manage your account.</p>
+
+    <form id="auth-form">
+
+      <label>
+        Email
+        <input
+          id="email"
+          type="email"
+          required
+        >
+      </label>
+
+      <label>
+        Password
+
+        <span class="password-field">
+
+          <input
+            id="password"
+            type="password"
+            minlength="6"
+            required
+          >
+
+          <button
+            class="password-toggle"
+            type="button"
+            aria-controls="password"
+            aria-pressed="false"
+          >
+            Show
+          </button>
+
+        </span>
+
+      </label>
+
+      <button type="submit">
+        Sign In
+      </button>
+
+      <button
+        type="button"
+        id="sign-up"
+      >
+        Create Account
+      </button>
+
+      <button
+        type="button"
+        id="forgot-password"
+        class="text-link"
+      >
+        Forgot Password?
+      </button>
+
+    </form>
+
+    <p
+      id="message"
+      aria-live="polite"
+    ></p>
+
+    <a href="index.html">
+      Back to shop
+    </a>
+
+  </main>
+
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Your authentication helper -->
+  <script src="auth.js"></script>
+
+
+  <script>
+
+    // =====================================================
+    // ELEMENTS
+    // =====================================================
+
+    const form =
+      document.querySelector('#auth-form');
+
+    const message =
+      document.querySelector('#message');
+
+
+    // =====================================================
+    // GET LOGIN DETAILS
+    // =====================================================
+
+    function credentials() {
+
+      return {
+
+        email:
+          document
+            .querySelector('#email')
+            .value
+            .trim(),
+
+        password:
+          document
+            .querySelector('#password')
+            .value
+
+      };
+
+    }
+
+
+    // =====================================================
+    // SHOW / HIDE PASSWORD
+    // =====================================================
+
+    document
+      .querySelector('.password-toggle')
+      .addEventListener('click', function () {
+
+        const password =
+          document.querySelector('#password');
+
+        const showing =
+          password.type === 'text';
+
+
+        password.type =
+          showing
+            ? 'password'
+            : 'text';
+
+
+        this.textContent =
+          showing
+            ? 'Show'
+            : 'Hide';
+
+
+        this.setAttribute(
+          'aria-pressed',
+          String(!showing)
+        );
+
+      });
+
+
+    // =====================================================
+    // SIGN IN
+    // =====================================================
+
+    form.addEventListener(
+      'submit',
+      async function (event) {
+
+        event.preventDefault();
+
+        message.textContent =
+          'Signing in...';
+
+
+        try {
+
+          const client =
+            await getAuthClient();
+
+
+          const { error } =
+            await client.auth.signInWithPassword(
+              credentials()
+            );
+
+
+          if (error) {
+            throw error;
+          }
+
+
+          // Get the logged-in user
+          const {
+            data: {
+              user
+            },
+            error: userError
+          } =
+            await client.auth.getUser();
+
+
+          if (userError || !user) {
+
+            throw new Error(
+              'Could not load your account.'
+            );
+
+          }
+
+
+          // Get access token
+          const token =
+            await getAccessToken();
+
+
+          if (!token) {
+
+            throw new Error(
+              'Could not create a login session.'
+            );
+
+          }
+
+
+          // Check whether this user is an admin
+          const adminResponse =
+            await fetch(
+              '/api/admin/products',
+              {
+                headers: {
+                  Authorization:
+                    `Bearer ${token}`
+                }
+              }
+            );
+
+
+          // ADMIN
+          if (adminResponse.ok) {
+
+            message.textContent =
+              'Admin login successful.';
+
+            window.location.href =
+              'admin.html';
+
+            return;
+
+          }
+
+
+          // NOT ADMIN
+          if (
+            adminResponse.status === 403
+          ) {
+
+            message.textContent =
+              'Login successful, but this account is not an admin account.';
+
+            await client.auth.signOut();
+
+            return;
+
+          }
+
+
+          // SESSION / SERVER ERROR
+          const data =
+            await adminResponse
+              .json()
+              .catch(() => ({}));
+
+
+          throw new Error(
+            data.error ||
+            'Could not verify admin access.'
+          );
+
+        }
+
+        catch (error) {
+
+          console.error(
+            'Login error:',
+            error
+          );
+
+          message.textContent =
+            error.message;
+
+        }
+
+      }
+    );
+
+
+    // =====================================================
+    // CREATE ACCOUNT
+    // =====================================================
+
+    document
+      .querySelector('#sign-up')
+      .addEventListener(
+        'click',
+        async function () {
+
+          try {
+
+            const client =
+              await getAuthClient();
+
+
+            const { data, error } =
+              await client.auth.signUp(
+                credentials()
+              );
+
+
+            if (error) {
+              throw error;
+            }
+
+
+            if (data.session) {
+
+              message.textContent =
+                'Account created. Please sign in.';
+
+            }
+
+            else {
+
+              message.textContent =
+                'Check your email to confirm your account, then sign in.';
+
+            }
+
+          }
+
+          catch (error) {
+
+            console.error(
+              'Sign-up error:',
+              error
+            );
+
+            message.textContent =
+              error.message;
+
+          }
+
+        }
+      );
+
+
+    // =====================================================
+    // FORGOT PASSWORD
+    // =====================================================
+
+    document
+      .querySelector('#forgot-password')
+      .addEventListener(
+        'click',
+        async function () {
+
+          const email =
+            document
+              .querySelector('#email')
+              .value
+              .trim();
+
+
+          if (!email) {
+
+            message.textContent =
+              'Enter your email address first.';
+
+            return;
+
+          }
+
+
+          try {
+
+            const client =
+              await getAuthClient();
+
+
+            const { error } =
+              await client.auth
+                .resetPasswordForEmail(
+                  email,
+                  {
+                    redirectTo:
+                      `${window.location.origin}/reset-password.html`
+                  }
+                );
+
+
+            if (error) {
+              throw error;
+            }
+
+
+            message.textContent =
+              'Password reset email sent. Check your inbox.';
+
+          }
+
+          catch (error) {
+
+            console.error(
+              'Password reset error:',
+              error
+            );
+
+            message.textContent =
+              error.message;
+
+          }
+
+        }
+      );
+
+  </script>
+
+</body>
+</html>

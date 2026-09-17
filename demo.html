@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+  LESSON 1: HTML — the skeleton of a webpage.
+  HTML doesn't make things look pretty. It just says what's ON the page
+  and how it's organized. Styling comes in Lesson 2 (CSS).
+  Everything below is a "tag", written as <tagname>content</tagname>.
+-->
+<html lang="en">
+<head>
+  <!-- The <head> holds info ABOUT the page, not things you see on it. -->
+  <meta charset="UTF-8">
+  <title>Stones and Bricks</title>
+  <!-- The <title> shows up in the browser tab, not on the page itself. -->
+</head>
+
+<body>
+  <!-- Everything inside <body> is what actually shows on screen. -->
+
+  <header>
+    <!-- <header> = the top banner area of a site: logo/name + nav links -->
+    <h1>Stones and Bricks</h1>
+    <p>Handmade stone and brick structures, one piece at a time.</p>
+
+    <nav>
+      <!-- <nav> = a group of navigation links -->
+      <a href="#games ">Damn</a>
+      <a href="#specifications ">YEH Buddy </a>
+      <a href="#convey">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- <main> = the primary content of the page (there's only one per page) -->
+
+    <section id="products">
+      <!-- <section> = a distinct chunk of content. The id="products" lets
+           the "Shop" link above jump straight down here. -->
+      <h2>Ours</h2>
+
+      <!-- Each product is its own little block. We'll style these into
+           cards with CSS next lesson, but structurally they're just: 
+           an image, a name, a price, and a button. -->
+
+      <div class="product">
+        <img src="https://placehold.co/300x300?text=Mug" alt="Handmade ceramic mug with a matte blue glaze">
+        <h3>Krishna Statue </h3>
+        <p class="price">$280.00</p>
+        <button>Add to Cart</button>
+      </div>
+
+      <div class="product">
+        <img src="https://placehold.co/300x300?text=Bowl" alt="Handmade ceramic bowl with a speckled cream glaze">
+        <h3>Speckled Bowl</h3>
+        <p class="price">$342.00</p>
+        <button>Add to Cart</button>
+      </div>
+
+      <div class="product">
+        <img src="https://placehold.co/300x300?text=Vase" alt="Handmade ceramic vase with an earthy terracotta finish">
+        <h3>Glass  Vase</h3>
+        <p class="price">$450.00</p>
+        <button>Add to Cart</button>
+      </div>
+
+    </section>
+
+    <section id="specifications">
+      <h2>Specifications</h2>
+      <p>
+        Every piece is thrown by hand on a potter's wheel, then glazed
+        and fired in small batches. No two pieces are exactly alike —
+        that's the point.
+      </p>
+    </section>
+
+  </main>
+
+  <footer id="contact">
+    <!-- <footer> = the bottom of the page: contact info, copyright, etc. -->
+    <p>Questions? Email us at hello@willowandclay.example</p>
+    <p>&copy; 2026 Willow & Clay</p>
+  </footer>
+
+</body>
+</html>

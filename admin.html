@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Admin — Willow & Clay</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Georgia, serif;
+      background: #f4efe6;
+      color: #33302b;
+    }
+
+    header {
+      padding: 1.5rem;
+      text-align: center;
+      background: #6b7860;
+      color: #f4efe6;
+    }
+
+    main {
+      max-width: 950px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    form,
+    .product,
+    .order {
+      background: white;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px #0002;
+    }
+
+    label {
+      display: block;
+      margin-top: 0.65rem;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.55rem;
+      margin-top: 0.2rem;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 0.8rem;
+      padding: 0.65rem 1rem;
+      border: 0;
+      border-radius: 4px;
+      background: #8a5a44;
+      color: white;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .product {
+      display: grid;
+      grid-template-columns: 90px 1fr auto;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .product img {
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .order {
+      padding: 1.2rem;
+    }
+
+    .order-items {
+      margin-top: 0.8rem;
+      padding-top: 0.8rem;
+      border-top: 1px solid #ddd;
+    }
+
+    .order-item {
+      margin: 0.4rem 0;
+    }
+
+    #message {
+      min-height: 1.5rem;
+      font-weight: bold;
+    }
+
+    .secondary {
+      background: #6b7860;
+      margin-left: 0.5rem;
+    }
+
+    .delete-button {
+      background: #8a5a44;
+      margin-left: 0.5rem;
+    }
+
+    .empty {
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+    }
+
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+    .stat { background: white; padding: 1rem; border-radius: 6px; box-shadow: 0 1px 4px #0002; }
+    .stat strong { display: block; font-size: 1.6rem; color: #6b7860; }
+
+    @media (max-width: 650px) {
+      .product {
+        grid-template-columns: 70px 1fr;
+      }
+
+      .product img {
+        width: 70px;
+        height: 70px;
+      }
+
+      .product button {
+        grid-column: 2;
+      }
+
+      header {
+        padding: 1rem;
+      }
+
+      main {
+        margin-top: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Willow & Clay Admin</h1>
+    <button id="logout" class="secondary">Log Out</button>
+  </header>
+
+  <main>
+
+    <p id="message" aria-live="polite"></p>
+
+    <h2>Dashboard</h2>
+    <section id="stats" class="stats" aria-live="polite"></section>
+
+    <!-- =====================================================
+         ADD / EDIT PRODUCT
+    ====================================================== -->
+
+    <h2>Add or Edit a Product</h2>
+
+    <form id="product-form">
+
+      <input id="product-id" type="hidden">
+
+      <label>
+        Name
+        <input id="name" required>
+      </label>
+
+      <label>
+        Price
+        <input
+          id="price"
+          type="number"
+          min="0"
+          step="0.01"
+          required
+        >
+      </label>
+
+      <label>
+        Stock
+        <input
+          id="stock"
+          type="number"
+          min="0"
+          step="1"
+          required
+        >
+      </label>
+
+      <label>
+        Image path or URL
+        <input id="img">
+      </label>
+
+      <label>
+        Or upload a product image (JPG, PNG, WEBP, GIF; 3 MB max)
+        <input id="image-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+      </label>
+
+      <label>
+        Category
+        <input id="category" required>
+      </label>
+
+      <label>
+        Description
+        <textarea id="description" required></textarea>
+      </label>
+
+      <button type="submit">
+        Save Product
+      </button>
+
+      <button
+        id="cancel"
+        type="button"
+        class="secondary"
+      >
+        Clear
+      </button>
+
+    </form>
+
+
+    <!-- =====================================================
+         PRODUCTS
+    ====================================================== -->
+
+    <h2>Products</h2>
+
+    <h3>Import products from CSV</h3>
+    <p>Header: <code>name,price,stock,img,category,description</code>. Maximum 100 products.</p>
+    <form id="import-form">
+      <label>CSV file<input id="csv-file" type="file" accept=".csv,text/csv" required></label>
+      <button type="submit">Import Products</button>
+    </form>
+
+    <section id="products"></section>
+
+
+    <!-- =====================================================
+         ORDERS
+    ====================================================== -->
+
+    <h2>Orders</h2>
+
+    <section id="orders"></section>
+
+  </main>
+
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Authentication helper -->
+  <script src="auth.js"></script>
+
+
+  <script>
+
+    // =======================================================
+    // ELEMENTS
+    // =======================================================
+
+    const message =
+      document.querySelector('#message');
+
+    const form =
+      document.querySelector('#product-form');
+
+    const productsElement =
+      document.querySelector('#products');
+
+    const ordersElement =
+      document.querySelector('#orders');
+
+    const statsElement =
+      document.querySelector('#stats');
+
+    const importForm = document.querySelector('#import-form');
+
+
+    // =======================================================
+    // DATA
+    // =======================================================
+
+    let products = [];
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, function (character) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character];
+      });
+    }
+
+
+    // =======================================================
+    // ADMIN FETCH
+    // =======================================================
+
+    async function adminFetch(path, options = {}) {
+
+      const token = await getAccessToken();
+
+      if (!token) {
+
+        window.location.href = 'login.html';
+
+        throw new Error('Please sign in.');
+
+      }
+
+      const response = await fetch(path, {
+
+        ...options,
+
+        headers: {
+
+          'Content-Type': 'application/json',
+
+          Authorization: `Bearer ${token}`,
+
+          ...(options.headers || {})
+
+        }
+
+      });
+
+
+      const data = await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.error || 'Request failed.'
+        );
+
+      }
+
+
+      return data;
+
+    }
+
+
+    // =======================================================
+    // CLEAR FORM
+    // =======================================================
+
+    function clearForm() {
+
+      form.reset();
+
+      document.querySelector(
+        '#product-id'
+      ).value = '';
+
+    }
+
+
+    // =======================================================
+    // RENDER PRODUCTS
+    // =======================================================
+
+    function renderProducts() {
+
+      if (!products.length) {
+
+        productsElement.innerHTML =
+          '<p class="empty">No products found.</p>';
+
+        return;
+
+      }
+
+
+      productsElement.innerHTML =
+        products.map(product => `
+
+          <article class="product">
+
+            <img
+              src="${escapeHtml(product.img)}"
+              alt="${escapeHtml(product.name)}"
+            >
+
+            <div>
+
+              <strong>
+                ${escapeHtml(product.name)}
+              </strong>
+
+              <br>
+
+              $${Number(product.price).toFixed(2)}
+
+              · Stock:
+              ${product.stock}
+
+              <br>
+
+              ${escapeHtml(product.category)}
+
+              <br><br>
+
+              ${escapeHtml(product.description)}
+
+            </div>
+
+            <div>
+
+              <button
+                data-id="${product.id}"
+                class="edit-button"
+              >
+                Edit
+              </button>
+
+              <button
+                data-delete-id="${product.id}"
+                class="delete-button"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </article>
+
+        `).join('');
+
+    }
+
+
+    // =======================================================
+    // LOAD PRODUCTS
+    // =======================================================
+
+    async function loadProducts() {
+
+      products =
+        await adminFetch(
+          '/api/admin/products'
+        );
+
+      renderProducts();
+
+    }
+
+    async function loadDashboard() {
+      const stats = await adminFetch('/api/admin/dashboard');
+      statsElement.innerHTML = `
+        <article class="stat"><span>Total products</span><strong>${stats.totalProducts}</strong></article>
+        <article class="stat"><span>Total orders</span><strong>${stats.totalOrders}</strong></article>
+        <article class="stat"><span>Total sales</span><strong>$${Number(stats.totalSales).toFixed(2)}</strong></article>
+        <article class="stat"><span>Low stock (1–5)</span><strong>${stats.lowStockProducts}</strong></article>
+        <article class="stat"><span>Out of stock</span><strong>${stats.outOfStockProducts}</strong></article>
+      `;
+    }
+
+
+    // =======================================================
+    // FORM PRODUCT
+    // =======================================================
+
+    function formProduct() {
+
+      const value =
+        id =>
+          document.querySelector(
+            `#${id}`
+          ).value;
+
+
+      return {
+
+        name: value('name'),
+
+        price: value('price'),
+
+        stock: value('stock'),
+
+        img: value('img'),
+
+        category: value('category'),
+
+        description: value('description')
+
+      };
+
+    }
+
+    function readImage(file) {
+      return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+        reader.addEventListener('load', function () { resolve(reader.result); });
+        reader.addEventListener('error', reject);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadSelectedImage() {
+      const file = document.querySelector('#image-file').files[0];
+      if (!file) return null;
+      if (file.size > 3 * 1024 * 1024) throw new Error('Image must be 3 MB or smaller.');
+      message.textContent = 'Uploading image…';
+      const uploaded = await adminFetch('/api/admin/product-images', {
+        method: 'POST',
+        body: JSON.stringify({ image: await readImage(file) })
+      });
+      return uploaded.url;
+    }
+
+    importForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const file = document.querySelector('#csv-file').files[0];
+      if (!file) return;
+      try {
+        message.textContent = 'Importing products…';
+        const csv = await file.text();
+        const result = await adminFetch('/api/admin/products/import', {
+          method: 'POST',
+          body: JSON.stringify({ csv: csv })
+        });
+        message.textContent = `${result.imported} product(s) imported.`;
+        importForm.reset();
+        await Promise.all([loadProducts(), loadDashboard()]);
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    });
+
+
+    // =======================================================
+    // LOAD ORDERS
+    // =======================================================
+
+    async function loadOrders() {
+
+      const orders =
+        await adminFetch(
+          '/api/admin/orders'
+        );
+
+
+      if (!orders.length) {
+
+        ordersElement.innerHTML =
+          '<p class="empty">No orders yet.</p>';
+
+        return;
+
+      }
+
+
+      ordersElement.innerHTML =
+        orders.map(order => `
+
+          <article class="order">
+
+            <strong>
+              Order #${order.id}
+            </strong>
+
+            <p>
+
+              <strong>Customer:</strong>
+              ${escapeHtml(order.name)}
+
+              <br>
+
+              <strong>Email:</strong>
+              ${escapeHtml(order.email)}
+
+              <br>
+
+              <strong>Address:</strong>
+              ${escapeHtml(order.address)}
+
+              <br>
+
+              <strong>Date:</strong>
+              ${new Date(
+                order.placed_at
+              ).toLocaleString()}
+
+            </p>
+
+
+            <div class="order-items">
+
+              <strong>Items</strong>
+
+              ${
+                order.order_items &&
+                order.order_items.length
+                  ? order.order_items.map(item => `
+
+                      <div class="order-item">
+
+                        ${escapeHtml(item.products ? item.products.name : `Product #${item.product_id}`)}
+
+                        × ${item.quantity}
+
+                        — $${Number(
+                          item.price
+                        ).toFixed(2)}
+
+                      </div>
+
+                    `).join('')
+                  : '<p>No items found.</p>'
+              }
+
+            </div>
+
+          </article>
+
+        `).join('');
+
+    }
+
+
+    // =======================================================
+    // SAVE PRODUCT
+    // =======================================================
+
+    form.addEventListener(
+      'submit',
+      async event => {
+
+        event.preventDefault();
+
+
+        try {
+
+          const id =
+            document.querySelector(
+              '#product-id'
+            ).value;
+
+
+          const imageUrl = await uploadSelectedImage();
+          const product = formProduct();
+          if (imageUrl) product.img = imageUrl;
+
+          await adminFetch(
+
+            id
+              ? `/api/admin/products/${id}`
+              : '/api/admin/products',
+
+            {
+
+              method:
+                id ? 'PUT' : 'POST',
+
+              body:
+                JSON.stringify(product)
+
+            }
+
+          );
+
+
+          message.textContent =
+            id
+              ? 'Product updated.'
+              : 'Product created.';
+
+
+          clearForm();
+
+          await Promise.all([loadProducts(), loadDashboard()]);
+
+        }
+
+        catch (error) {
+
+          console.error(error);
+
+          message.textContent =
+            error.message;
+
+        }
+
+      }
+    );
+
+
+    // =======================================================
+    // PRODUCT BUTTONS
+    // =======================================================
+
+    productsElement.addEventListener(
+      'click',
+      async event => {
+
+        // -----------------------------
+        // EDIT
+        // -----------------------------
+
+        if (
+          event.target.dataset.id
+        ) {
+
+          const product =
+            products.find(
+              item =>
+                String(item.id) ===
+                event.target.dataset.id
+            );
+
+
+          if (!product) return;
+
+
+          document.querySelector(
+            '#product-id'
+          ).value = product.id;
+
+
+          [
+            'name',
+            'price',
+            'stock',
+            'img',
+            'category',
+            'description'
+          ].forEach(key => {
+
+            document.querySelector(
+              `#${key}`
+            ).value =
+              product[key] ?? '';
+
+          });
+
+
+          window.scrollTo({
+
+            top: 0,
+
+            behavior: 'smooth'
+
+          });
+
+
+          return;
+
+        }
+
+
+        // -----------------------------
+        // DELETE
+        // -----------------------------
+
+        if (
+          event.target.dataset.deleteId
+        ) {
+
+          const id =
+            event.target.dataset.deleteId;
+
+
+          const product =
+            products.find(
+              item =>
+                String(item.id) === id
+            );
+
+
+          if (!product) return;
+
+
+          const confirmed =
+            confirm(
+              `Delete "${product.name}"?`
+            );
+
+
+          if (!confirmed) return;
+
+
+          try {
+            await adminFetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+            message.textContent = 'Product deleted.';
+            await Promise.all([loadProducts(), loadDashboard()]);
+          } catch (error) {
+            message.textContent = error.message;
+          }
+
+        }
+
+      }
+    );
+
+
+    // =======================================================
+    // CLEAR BUTTON
+    // =======================================================
+
+    document.querySelector(
+      '#cancel'
+    ).addEventListener(
+      'click',
+      clearForm
+    );
+
+
+    // =======================================================
+    // LOGOUT
+    // =======================================================
+
+    document.querySelector(
+      '#logout'
+    ).addEventListener(
+      'click',
+      async () => {
+
+        try {
+
+          const client =
+            await getAuthClient();
+
+          await client.auth.signOut();
+
+        }
+
+        finally {
+
+          window.location.href =
+            'index.html';
+
+        }
+
+      }
+    );
+
+
+    // =======================================================
+    // INITIAL LOAD
+    // =======================================================
+
+    Promise.all([
+
+      loadProducts(),
+
+      loadOrders(),
+
+      loadDashboard()
+
+    ]).catch(error => {
+
+      console.error(
+        'Admin page load failed:',
+        error
+      );
+
+      message.textContent =
+        error.message;
+
+    });
+
+  </script>
+
+</body>
+</html>

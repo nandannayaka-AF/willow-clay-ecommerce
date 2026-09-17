@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product — Willow & Clay</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --sage: #6b7860;
+      --cream: #f4efe6;
+      --clay: #8a5a44;
+      --clay-dark: #6e4636;
+      --text: #33302b;
+    }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      background-color: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      background-color: var(--sage);
+      color: var(--cream);
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      font-style: italic;
+      opacity: 0.9;
+      margin-top: 0.25rem;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    #product-detail {
+      background-color: white;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    #product-detail img {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto 2rem;
+      border-radius: 8px;
+    }
+
+    #product-detail h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .price {
+      color: var(--clay);
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .description {
+      margin-bottom: 1.5rem;
+    }
+
+    .add-btn {
+      background-color: var(--clay);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+
+    .add-btn:hover {
+      background-color: var(--clay-dark);
+    }
+
+    .add-btn:disabled { background-color: #999; cursor: not-allowed; }
+    .stock-status.low { color: var(--clay); }
+    .stock-status.out { color: #9c3030; }
+
+    @media (max-width: 600px) {
+      header { padding: 1.25rem 1rem; }
+      header h1 { font-size: 2rem; }
+      main { padding: 1.5rem 1rem; }
+      #product-detail { padding: 1.25rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Willow & Clay</h1>
+    <p>Handmade ceramics, one mug at a time.</p>
+  </header>
+
+  <main>
+
+    <section id="product-detail">
+      <!-- JavaScript will generate the product here -->
+    </section>
+
+  </main>
+  <script src="cart.js"></script>
+
+  <script>
+   const params = new URLSearchParams(window.location.search);
+const id = parseInt(params.get('id'));
+
+const detailSection = document.querySelector('#product-detail');
+let currentProduct = null;
+async function loadProduct() {
+  try {
+    const response = await fetch('/api/products');
+
+    if (!response.ok) {
+      throw new Error('Failed to load products');
+    }
+
+    const products = await response.json();
+
+    currentProduct = products.find(function (p) {
+  return p.id === id;
+});
+    if (currentProduct) {
+      const stock = Number(currentProduct.stock);
+      const stockClass = stock === 0 ? 'out' : stock <= 5 ? 'low' : '';
+      const stockText = stock === 0 ? 'Out of stock' : stock <= 5 ? `Only ${stock} left` : 'In stock';
+      detailSection.innerHTML = `
+        <img
+          src="${currentProduct.img}"
+          alt="${currentProduct.name}"
+          style="max-width:400px; border-radius:8px;"
+        >
+
+        <h2>${currentProduct.name}</h2>
+
+        <p class="price">
+          $${currentProduct.price.toFixed(2)}
+        </p>
+
+        <p>
+          ${currentProduct.description || 'A handmade piece from Willow & Clay.'}
+        </p>
+
+        <p>
+          <strong>Category:</strong> ${currentProduct.category}
+        </p>
+
+        <p class="stock-status ${stockClass}"><strong>${stockText}</strong></p>
+
+        <button
+          class="add-btn"
+          data-id="${currentProduct.id}"
+          ${stock === 0 ? 'disabled' : ''}
+        >
+          ${stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+        </button>
+      `;
+    } else {
+      detailSection.innerHTML = `
+        <p>Product not found.</p>
+      `;
+    }
+
+  } catch (error) {
+    console.error('Could not load product:', error);
+
+    detailSection.innerHTML = `
+      <p>Could not load product.</p>
+    `;
+  }
+}
+
+loadProduct();
+
+let cart = loadCart();
+
+detailSection.addEventListener('click', function (event) {
+
+  if (event.target.classList.contains('add-btn')) {
+
+    const productId = parseInt(event.target.dataset.id);
+
+    const product = currentProduct;
+
+    if (product) {
+      const added = addToCart(cart, product);
+
+      if (!added) {
+        alert(`Only ${product.stock} of this product can be added to your cart.`);
+        return;
+      }
+
+      saveCart(cart);
+
+      event.target.textContent = 'Added!';
+
+      setTimeout(function () {
+        event.target.textContent = 'Add to Cart';
+      }, 1000);
+    }
+
+  }
+
+});
+
+  </script>
+
+</body>
+
+</html>

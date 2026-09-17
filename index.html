@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Willow & Clay</title>
+
+  <style>
+    .product a {
+  color: inherit;
+  text-decoration: none;
+}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --sage: #6b7860;
+      --cream: #f4efe6;
+      --clay: #8a5a44;
+      --clay-dark: #6e4636;
+      --text: #33302b;
+    }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      background-color: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      background-color: var(--sage);
+      color: var(--cream);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      position: relative;
+    }
+
+    header h1 { font-size: 2.5rem; letter-spacing: 1px; }
+    header p { font-style: italic; opacity: 0.9; margin-top: 0.25rem; }
+
+    nav { margin-top: 1.5rem; }
+    nav a {
+      color: var(--cream);
+      text-decoration: none;
+      margin: 0 1rem;
+      font-size: 1rem;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s ease;
+    }
+    nav a:hover { border-bottom: 1px solid var(--cream); }
+
+    /* --- CART ICON (top right of header) --- */
+    #cart-toggle {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: var(--clay);
+      color: white;
+      border: none;
+      padding: 0.5rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    main { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem; }
+    section { margin-bottom: 4rem; }
+
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid var(--clay);
+      display: inline-block;
+      padding-bottom: 0.25rem;
+    }
+
+    #products { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+    #products h2 { flex-basis: 100%; }
+
+    .product {
+      background-color: white;
+      border-radius: 8px;
+      padding: 1.25rem;
+      width: 260px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+    .product:hover { transform: translateY(-4px); }
+    .product img { width: 100%; border-radius: 6px; margin-bottom: 0.75rem; }
+    .product h3 { font-size: 1.1rem; margin-bottom: 0.25rem; }
+    .price { color: var(--clay); font-weight: bold; margin-bottom: 0.75rem; }
+    .stock-status { min-height: 1.5rem; font-size: .9rem; margin-bottom: .6rem; color: var(--sage); }
+    .stock-status.low { color: #8a5a44; }
+    .stock-status.out { color: #9c3030; }
+
+    .product button {
+      background-color: var(--clay);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .product button:hover { background-color: var(--clay-dark); }
+    .product button:disabled { background-color: #999; cursor: not-allowed; }
+
+    #about p { max-width: 60ch; }
+
+    footer {
+      background-color: var(--sage);
+      color: var(--cream);
+      text-align: center;
+      padding: 2rem 1.5rem;
+      font-size: 0.9rem;
+    }
+    footer p { margin-bottom: 0.25rem; }
+
+    /* --- CART PANEL (hidden by default, slides in) --- */
+    #cart-panel {
+      position: fixed;
+      top: 0;
+      right: -320px;
+      /* parked just off-screen to the right until opened */
+      width: 300px;
+      height: 100%;
+      background: white;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.15);
+      padding: 1.5rem;
+      transition: right 0.3s ease;
+      /* animates the "right" position when it changes, giving a slide effect */
+      z-index: 100;
+      /* keeps it above everything else */
+    }
+
+    #cart-panel.open {
+      right: 0;
+      /* this class gets added/removed by JavaScript to open/close the panel */
+    }
+
+    #cart-panel h2 { font-size: 1.4rem; margin-bottom: 1rem; }
+
+    #cart-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    #cart-items { list-style: none; margin-bottom: 1rem; }
+    #cart-items li {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #eee;
+      font-size: 0.95rem;
+    }
+
+    #cart-total {
+      font-weight: bold;
+      font-size: 1.1rem;
+      border-top: 2px solid var(--clay);
+      padding-top: 0.75rem;
+    }
+
+    #cart-empty-msg { color: #888; font-style: italic; }
+
+    @media (max-width: 600px) {
+      header { padding: 1.25rem 1rem 1rem; }
+      header h1 { font-size: 2rem; }
+      #cart-toggle { top: .75rem; right: .75rem; }
+      nav { display: flex; justify-content: center; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
+      nav a { margin: 0; }
+      main { padding: 2rem 1rem; }
+      #products { justify-content: center; }
+      .product { width: min(100%, 340px); }
+      #cart-panel { width: min(88vw, 320px); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <button id="cart-toggle">Cart (<span id="cart-count">0</span>)</button>
+    <h1>Willow & Clay</h1>
+    <p>Handmade ceramics, one mug at a time.</p>
+    <nav>
+      <a href="#products">Shop</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+      <a href="login.html">Login</a>
+      <a href="account.html">My Account</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="products">
+      <h2>Our Products</h2>
+
+      <!-- Notice each button now has data-name / data-price attributes.
+           These aren't standard HTML — "data-*" is a way to attach your
+           own custom info to an element, which JavaScript can then read. -->
+
+      
+    </section>
+
+    <section id="about">
+      <h2>About Willow & Clay</h2>
+      <p>
+        Every piece is thrown by hand on a potter's wheel, then glazed
+        and fired in small batches. No two pieces are exactly alike —
+        that's the point.
+      </p>
+    </section>
+  </main>
+
+  <footer id="contact">
+    <p>Questions? Email us at hello@willowandclay.example</p>
+    <p>&copy; 2026 Willow & Clay</p>
+  </footer>
+
+  <!-- The cart panel: hidden off-screen until JS adds the "open" class -->
+  <div id="cart-panel">
+    <a
+  id="checkout-link"
+  href="checkout.html"
+  style="
+    display:block;
+    margin-top:1rem;
+    text-align:center;
+    background:var(--clay);
+    color:white;
+    padding:0.7rem;
+    border-radius:4px;
+    text-decoration:none;
+  "
+>
+  Proceed to Checkout
+</a>
+    <button id="cart-close">&times;</button>
+    <h2>Your Cart</h2>
+    <ul id="cart-items"></ul>
+    <p id="cart-empty-msg">Your cart is empty.</p>
+    <p id="cart-total"></p>
+  </div>
+
+
+<script src="cart.js"></script>
+
+
+<script>
+   let products = [];
+
+  // ===========================================================
+  // PRODUCT RENDERING
+  // ===========================================================
+
+  function renderProducts() {
+  const cardsHTML = products.map(productCardHTML).join('');
+
+  productsSection.innerHTML = `
+    <h2>Our Products</h2>
+    ${cardsHTML}
+  `;
+}
+  function productCardHTML(product) {
+    const stock = Number(product.stock);
+    const stockClass = stock === 0 ? 'out' : stock <= 5 ? 'low' : '';
+    const stockText = stock === 0 ? 'Out of stock' : stock <= 5 ? `Only ${stock} left` : 'In stock';
+    return `
+      <div class="product">
+
+        <a href="product.html?id=${product.id}">
+          <img src="${product.img}" alt="${product.name}">
+          <h3>${product.name}</h3>
+        </a>
+
+        <p class="price">
+          $${product.price.toFixed(2)}
+        </p>
+
+        <p class="stock-status ${stockClass}">${stockText}</p>
+
+        <button class="add-btn" data-id="${product.id}" ${stock === 0 ? 'disabled' : ''}>
+          ${stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+        </button>
+
+      </div>
+    `;
+  }
+
+
+  const productsSection = document.querySelector('#products');
+
+
+  async function loadProducts() {
+  try {
+    const response = await fetch('/api/products');
+
+    if (!response.ok) {
+      throw new Error('Failed to load products');
+    }
+
+    const data = await response.json();
+products = data;
+
+renderProducts();
+
+  } catch (error) {
+    console.error('Could not load products:', error);
+    productsSection.innerHTML = '<p>Could not load products.</p>';
+  }
+}
+
+  // ===========================================================
+  // CART
+  // ===========================================================
+
+  let cart = loadCart();
+
+
+  // Get elements from the page
+
+  const cartToggleBtn =
+    document.querySelector('#cart-toggle');
+
+  const cartCloseBtn =
+    document.querySelector('#cart-close');
+
+  const cartPanel =
+    document.querySelector('#cart-panel');
+
+  const cartItemsList =
+    document.querySelector('#cart-items');
+
+  const cartCountSpan =
+    document.querySelector('#cart-count');
+
+  const cartTotalPara =
+    document.querySelector('#cart-total');
+
+  const cartEmptyMsg =
+    document.querySelector('#cart-empty-msg');
+
+
+  // ===========================================================
+  // ADD TO CART
+  // ===========================================================
+
+  function handleAddToCart(event) {
+
+    const id =
+      parseInt(event.target.dataset.id);
+
+    const product = products.find(function (p) {
+  return p.id === id;
+});
+
+if (product) {
+  const added = addToCart(cart, product);
+
+  if (!added) {
+    alert(`Only ${product.stock} of this product can be added to your cart.`);
+    return;
+  }
+
+
+    saveCart(cart);
+
+    renderCart();
+
+    openCart();
+  }
+  }
+
+  // Event delegation for Add to Cart buttons
+
+  productsSection.addEventListener('click', function (event) {
+
+    if (event.target.classList.contains('add-btn')) {
+
+      handleAddToCart(event);
+
+    }
+
+  });
+
+
+  // ===========================================================
+  // REMOVE ITEM
+  // ===========================================================
+
+  function handleRemoveItem(index) {
+
+    cart.splice(index, 1);
+
+    renderCart();
+
+  }
+
+
+  // ===========================================================
+  // CHANGE QUANTITY
+  // ===========================================================
+
+  function handleChangeQuantity(index, delta) {
+
+    if (delta > 0 && Number.isInteger(cart[index].stock) && cart[index].quantity >= cart[index].stock) {
+      alert(`Only ${cart[index].stock} of this product are currently available.`);
+      return;
+    }
+
+    cart[index].quantity += delta;
+
+    if (cart[index].quantity <= 0) {
+
+      cart.splice(index, 1);
+
+    }
+
+    renderCart();
+
+  }
+
+
+  // ===========================================================
+  // RENDER CART
+  // ===========================================================
+
+  function renderCart() {
+
+    cartItemsList.innerHTML = '';
+
+
+    if (cart.length === 0) {
+
+      cartEmptyMsg.style.display = 'block';
+
+      cartTotalPara.textContent = '';
+
+    } else {
+
+      cartEmptyMsg.style.display = 'none';
+
+
+      cart.forEach(function (item, index) {
+
+        const li =
+          document.createElement('li');
+
+
+        li.innerHTML = `
+
+          <span>
+
+            ${item.name} — $${item.price.toFixed(2)} ×
+
+            <button
+              class="qty-btn"
+              data-index="${index}"
+              data-delta="-1"
+            >
+              −
+            </button>
+
+            ${item.quantity}
+
+            <button
+              class="qty-btn"
+              data-index="${index}"
+              data-delta="1"
+            >
+              +
+            </button>
+
+          </span>
+
+
+          <button
+            data-index="${index}"
+            class="remove-btn"
+            style="
+              background:none;
+              border:none;
+              color:#a33;
+              cursor:pointer;
+            "
+          >
+            remove
+          </button>
+
+        `;
+
+
+        cartItemsList.appendChild(li);
+
+      });
+
+
+      // Remove buttons
+
+      document
+        .querySelectorAll('.remove-btn')
+        .forEach(function (btn) {
+
+          btn.addEventListener('click', function () {
+
+            handleRemoveItem(
+              parseInt(btn.dataset.index)
+            );
+
+          });
+
+        });
+
+
+      // Quantity buttons
+
+      document
+        .querySelectorAll('.qty-btn')
+        .forEach(function (btn) {
+
+          btn.addEventListener('click', function () {
+
+            const index =
+              parseInt(btn.dataset.index);
+
+            const delta =
+              parseInt(btn.dataset.delta);
+
+
+            handleChangeQuantity(
+              index,
+              delta
+            );
+
+          });
+
+        });
+
+
+      // Calculate total
+
+      const total =
+        cart.reduce(function (sum, item) {
+
+          return sum +
+            (item.price * item.quantity);
+
+        }, 0);
+
+
+      cartTotalPara.textContent =
+        `Total: $${total.toFixed(2)}`;
+
+    }
+
+
+    // Update cart badge
+
+    cartCountSpan.textContent =
+      cart.length;
+
+
+    // Save updated cart
+
+    saveCart(cart);
+
+  }
+
+
+  // ===========================================================
+  // OPEN / CLOSE CART
+  // ===========================================================
+
+  function openCart() {
+
+    cartPanel.classList.add('open');
+
+  }
+
+
+  function closeCart() {
+
+    cartPanel.classList.remove('open');
+
+  }
+
+
+  // ===========================================================
+  // CART EVENTS
+  // ===========================================================
+
+  cartToggleBtn.addEventListener(
+    'click',
+    openCart
+  );
+
+
+  cartCloseBtn.addEventListener(
+    'click',
+    closeCart
+  );
+
+
+  // ===========================================================
+  // INITIAL LOAD
+  // ===========================================================
+
+  renderCart();
+
+
+  // Re-sync cart when returning to the page
+
+  window.addEventListener(
+    'pageshow',
+    function () {
+
+      cart = loadCart();
+
+      renderCart();
+
+    }
+  );
+  loadProducts();
+renderCart();
+  
+</script>
+
+</body>
+</html>

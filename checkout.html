@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — Willow & Clay</title>
+
+ <style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --sage: #6b7860;
+    --cream: #f4efe6;
+    --clay: #8a5a44;
+    --clay-dark: #6e4636;
+    --text: #33302b;
+  }
+
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background-color: var(--cream);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* Same header feel as the shop */
+  header {
+    background-color: var(--sage);
+    color: var(--cream);
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  header h1 {
+    font-size: 2.5rem;
+    letter-spacing: 1px;
+  }
+
+  header p {
+    font-style: italic;
+    opacity: 0.9;
+    margin-top: 0.25rem;
+  }
+
+  main {
+    max-width: 650px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--clay);
+    display: inline-block;
+    padding-bottom: 0.25rem;
+  }
+
+  /* Order summary */
+  #order-summary {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+
+  #order-summary li {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  #order-total {
+    font-weight: bold;
+    font-size: 1.1rem;
+    border-top: 2px solid var(--clay);
+    padding-top: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  /* Checkout form */
+  #checkout-form {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+
+  label {
+    display: block;
+    margin-bottom: 1.25rem;
+    font-size: 0.95rem;
+  }
+
+  input {
+    display: block;
+    width: 100%;
+    padding: 0.65rem;
+    margin-top: 0.35rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1rem;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--clay);
+  }
+
+  #checkout-form button {
+    width: 100%;
+    background-color: var(--clay);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+
+  #checkout-form button:hover {
+    background-color: var(--clay-dark);
+  }
+
+  /* Confirmation */
+  #confirmation {
+    display: none;
+    background-color: white;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+
+  #confirmation h2 {
+    color: var(--sage);
+  }
+  .back-to-shop {
+  display: inline-block;
+  margin-top: 1.5rem;
+  background-color: var(--clay);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.back-to-shop:hover {
+  background-color: var(--clay-dark);
+}
+
+@media (max-width: 600px) {
+  header { padding: 1.25rem 1rem; }
+  header h1 { font-size: 2rem; }
+  main { padding: 1.5rem 1rem; }
+  #order-summary, #checkout-form, #confirmation { padding: 1.1rem; }
+}
+</style>
+
+
+
+</head>
+
+<body>
+    <header>
+  <h1>Willow & Clay</h1>
+  <p>Handmade ceramics, one mug at a time.</p>
+</header>
+
+  <main>
+
+    <h1>Checkout</h1>
+
+    <ul id="order-summary"></ul>
+
+    <p id="order-total"></p>
+
+    <form id="checkout-form">
+
+      <label>
+        Full Name
+        <input type="text" id="name" required>
+      </label>
+
+      <label>
+        Email
+        <input type="email" id="email" required>
+      </label>
+
+      <label>
+        Shipping Address
+        <input type="text" id="address" required>
+      </label>
+
+      <button type="submit">Place Order</button>
+
+    </form>
+
+    <div id="confirmation">
+  <h2>Thank You! 🎉</h2>
+
+  <p>Your order has been placed successfully.</p>
+  <p id="order-id"></p>
+
+  <a href="index.html" class="back-to-shop">
+    Continue with Shopping
+  </a>
+</div>
+
+  </main>
+
+<script src="cart.js"></script>
+
+<script>
+
+ const cart = loadCart();
+
+  const summaryList = document.querySelector('#order-summary');
+  const orderTotal = document.querySelector('#order-total');
+  const form = document.querySelector('#checkout-form');
+  const confirmation = document.querySelector('#confirmation');
+  const orderId = document.querySelector('#order-id');
+
+  function renderSummary() {
+
+    if (cart.length === 0) {
+     summaryList.innerHTML = `
+  <li>Your cart feels a too light. Add something lovely to it.</li>
+`;
+
+      orderTotal.textContent = '';
+      form.style.display = 'none';
+
+      return;
+    }
+
+    summaryList.innerHTML = cart.map(item => `
+      <li>
+        <span>${item.name} × ${item.quantity}</span>
+        <span>$${(item.price * item.quantity).toFixed(2)}</span>
+      </li>
+    `).join('');
+
+    const total = cart.reduce(function (sum, item) {
+      return sum + (item.price * item.quantity);
+    }, 0);
+
+    orderTotal.textContent = `Total: $${total.toFixed(2)}`;
+  }
+
+  renderSummary();
+
+  form.addEventListener('submit', async function (event) {
+  event.preventDefault();
+
+  const order = {
+    name: document.querySelector('#name').value,
+    email: document.querySelector('#email').value,
+    address: document.querySelector('#address').value,
+    items: cart
+  };
+
+  try {
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(order)
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(responseData.error || 'Order failed');
+    }
+
+    clearCart();
+
+    form.style.display = 'none';
+    summaryList.style.display = 'none';
+    orderTotal.style.display = 'none';
+    orderId.textContent = `Order reference: #${responseData.orderId}`;
+    confirmation.style.display = 'block';
+
+  } catch (error) {
+    alert(error.message || 'Something went wrong placing your order. Please try again.');
+    console.error(error);
+  }
+});
+
+
+</script>
+ 
+</body>
+</html>
